@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>羊了个羊</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 520px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .header h1 {
+            font-size: 1.6em;
+            color: #2d6a4f;
+        }
+
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            background: #f0faf4;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 0.9em;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .hud span {
+            color: #2d6a4f;
+        }
+
+        .board-wrap {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        #board {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            height: 380px;
+            background: #e8f5e9;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .tile {
+            position: absolute;
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7em;
+            background: #fff9e6;
+            border: 2px solid #d4a373;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, top 0.3s, left 0.3s;
+            box-shadow: 0 3px 0 #b08968, 0 4px 8px rgba(0, 0, 0, 0.15);
+            user-select: none;
+            z-index: 1;
+        }
+
+        .tile:hover {
+            transform: translateY(-2px);
+        }
+
+        .tile.blocked {
+            filter: brightness(0.65);
+            cursor: not-allowed;
+        }
+
+        .tile.blocked:hover {
+            transform: none;
+        }
+
+        .tile.matched {
+            animation: matchPop 0.3s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes matchPop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .slot-area {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            padding: 10px;
+            background: #fff3e0;
+            border: 2px dashed #d4a373;
+            border-radius: 12px;
+            min-height: 70px;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+
+        .slot {
+            width: 48px;
+            height: 48px;
+            background: #fff9e6;
+            border: 2px solid #d4a373;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            flex-shrink: 0;
+            transition: transform 0.15s;
+        }
+
+        .slot.filled {
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button, .link-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 0.95em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #56ab2f, #2d6a4f);
+            color: white;
+            box-shadow: 0 4px 12px rgba(45, 106, 79, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #2d6a4f;
+        }
+
+        .btn-primary:hover, .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.78);
+            border-radius: 12px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            gap: 14px;
+            text-align: center;
+            padding: 20px;
+            z-index: 100;
+        }
+
+        .overlay.show {
+            display: flex;
+        }
+
+        .overlay h2 {
+            font-size: 1.6em;
+        }
+
+        .overlay p {
+            font-size: 1em;
+            color: #ddd;
+        }
+
+        .rules {
+            margin-top: 14px;
+            background: #f6fff8;
+            border-left: 4px solid #2d6a4f;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .rules h3 {
+            color: #2d6a4f;
+            margin-bottom: 6px;
+            font-size: 1em;
+        }
+
+        @media (max-width: 460px) {
+            #board { height: 320px; }
+            .tile { width: 44px; height: 44px; font-size: 1.4em; }
+            .slot { width: 40px; height: 40px; font-size: 1.3em; }
+            .header h1 { font-size: 1.3em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🐑 羊了个羊 🐑</h1>
+        </div>
+
+        <div class="hud">
+            <div>得分：<span id="score">0</span></div>
+            <div>剩余：<span id="remaining">0</span></div>
+            <div>槽位：<span id="slotCount">0</span>/7</div>
+        </div>
+
+        <div class="board-wrap">
+            <div id="board"></div>
+            <div class="overlay" id="overlay">
+                <h2 id="overlay-title">游戏结束</h2>
+                <p id="overlay-text">得分：0</p>
+                <button class="btn-primary" onclick="initGame()">再来一局</button>
+            </div>
+        </div>
+
+        <div class="slot-area" id="slotArea"></div>
+
+        <div class="controls">
+            <button class="btn-primary" onclick="initGame()">🔄 重新开始</button>
+            <a href="index.html" class="link-btn btn-secondary">🏠 返回主页</a>
+        </div>
+
+        <div class="rules">
+            <h3>📖 游戏说明</h3>
+            <p>1. 点击方块，把它放到下方的槽位里，槽位最多容纳 7 个方块。</p>
+            <p>2. 槽位里出现 3 个相同图案的方块时，会自动消除并得分。</p>
+            <p>3. 被上层方块覆盖的方块无法点击，需要先消除上层的方块。</p>
+            <p>4. 如果槽位满了且无法消除，游戏结束。</p>
+            <p>5. 消除所有方块即可过关！</p>
+        </div>
+    </div>
+
+    <script>
+        const SYMBOLS = ['🐑', '🍎', '🌿', '🥕', '🌻', '🍄', '🪵', '💧'];
+        const SLOT_MAX = 7;
+        const TILE_SIZE = 52;
+
+        let tiles = [];
+        let slot = [];
+        let score = 0;
+        let remaining = 0;
+        let gameOver = false;
+
+        const boardEl = document.getElementById('board');
+        const slotAreaEl = document.getElementById('slotArea');
+        const scoreEl = document.getElementById('score');
+        const remainingEl = document.getElementById('remaining');
+        const slotCountEl = document.getElementById('slotCount');
+        const overlayEl = document.getElementById('overlay');
+
+        // 计算某一层的布局（中心对称的堆叠）
+        function generateLayout(layers) {
+            const positions = [];
+            const boardRect = boardEl.getBoundingClientRect();
+            const boardW = boardRect.width || 420;
+            const boardH = boardRect.height || 380;
+            const cols = Math.floor((boardW - 20) / (TILE_SIZE + 4));
+            const rows = Math.floor((boardH - 20) / (TILE_SIZE + 4));
+            const offsetX = (boardW - cols * (TILE_SIZE + 4)) / 2;
+            const offsetY = (boardH - rows * (TILE_SIZE + 4)) / 2;
+
+            for (let layer = 0; layer < layers; layer++) {
+                // 每层格子数减少，制造堆叠感
+                const shrink = Math.floor(layer / 2);
+                const layerCols = Math.max(3, cols - shrink * 2);
+                const layerRows = Math.max(3, rows - shrink * 2);
+                const startCol = Math.floor((cols - layerCols) / 2);
+                const startRow = Math.floor((rows - layerRows) / 2);
+
+                for (let r = 0; r < layerRows; r++) {
+                    for (let c = 0; c < layerCols; c++) {
+                        // 随机挖空，让每层不是满的
+                        if (Math.random() < 0.25 && layer > 0) continue;
+                        const x = offsetX + (startCol + c) * (TILE_SIZE + 4) + layer * 3;
+                        const y = offsetY + (startRow + r) * (TILE_SIZE + 4) + layer * 3;
+                        positions.push({
+                            x, y,
+                            layer,
+                            // 上层偏移一点点，露出下层边缘
+                        });
+                    }
+                }
+            }
+            return positions;
+        }
+
+        function buildTiles() {
+            const positions = generateLayout(4);
+            // 保证总数是 3 的倍数
+            while (positions.length % 3 !== 0) positions.pop();
+
+            const total = positions.length;
+            // 生成符号池：每个符号出现 3 的倍数次
+            const pool = [];
+            const groupCount = total / 3;
+            for (let i = 0; i < groupCount; i++) {
+                const sym = SYMBOLS[i % SYMBOLS.length];
+                pool.push(sym, sym, sym);
+            }
+            // 打乱
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            tiles = positions.map((pos, i) => ({
+                id: i,
+                x: pos.x,
+                y: pos.y,
+                layer: pos.layer,
+                symbol: pool[i],
+                removed: false,
+                el: null
+            }));
+
+            remaining = tiles.length;
+        }
+
+        // 判断某个方块是否被上层覆盖
+        function isBlocked(tile) {
+            if (tile.removed) return true;
+            for (const t of tiles) {
+                if (t.removed || t.id === tile.id) continue;
+                if (t.layer > tile.layer) {
+                    // 判断是否重叠
+                    const dx = Math.abs(t.x - tile.x);
+                    const dy = Math.abs(t.y - tile.y);
+                    if (dx < TILE_SIZE - 6 && dy < TILE_SIZE - 6) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function renderBoard() {
+            boardEl.innerHTML = '';
+            // 按层级排序，高层后绘制
+            const sorted = [...tiles].sort((a, b) => a.layer - b.layer);
+            for (const tile of sorted) {
+                if (tile.removed) continue;
+                const el = document.createElement('div');
+                el.className = 'tile';
+                el.textContent = tile.symbol;
+                el.style.left = tile.x + 'px';
+                el.style.top = tile.y + 'px';
+                el.style.zIndex = 10 + tile.layer * 5;
+
+                if (isBlocked(tile)) {
+                    el.classList.add('blocked');
+                }
+
+                el.addEventListener('click', () => onTileClick(tile));
+                tile.el = el;
+                boardEl.appendChild(el);
+            }
+            updateHUD();
+        }
+
+        function renderSlot() {
+            slotAreaEl.innerHTML = '';
+            for (let i = 0; i < SLOT_MAX; i++) {
+                const s = document.createElement('div');
+                s.className = 'slot';
+                if (slot[i]) {
+                    s.classList.add('filled');
+                    s.textContent = slot[i].symbol;
+                }
+                slotAreaEl.appendChild(s);
+            }
+            slotCountEl.textContent = slot.length;
+        }
+
+        function updateHUD() {
+            scoreEl.textContent = score;
+            remainingEl.textContent = tiles.filter(t => !t.removed).length;
+            slotCountEl.textContent = slot.length;
+        }
+
+        function onTileClick(tile) {
+            if (gameOver || tile.removed) return;
+            if (isBlocked(tile)) return;
+            if (slot.length >= SLOT_MAX) return;
+
+            // 移动到槽位
+            tile.removed = true;
+            slot.push(tile);
+
+            if (tile.el) {
+                tile.el.classList.add('matched');
+                setTimeout(() => {
+                    if (tile.el && tile.el.parentNode) {
+                        tile.el.parentNode.removeChild(tile.el);
+                    }
+                }, 300);
+            }
+
+            renderSlot();
+            updateHUD();
+
+            // 检查三消
+            setTimeout(() => {
+                checkMatch();
+            }, 200);
+        }
+
+        function checkMatch() {
+            // 统计每个符号的数量
+            const count = {};
+            slot.forEach(t => {
+                count[t.symbol] = (count[t.symbol] || 0) + 1;
+            });
+
+            let matched = false;
+            for (const sym in count) {
+                if (count[sym] >= 3) {
+                    // 移除槽位中该符号的前 3 个
+                    let removedCount = 0;
+                    for (let i = slot.length - 1; i >= 0; i--) {
+                        if (slot[i].symbol === sym && removedCount < 3) {
+                            slot.splice(i, 1);
+                            removedCount++;
+                        }
+                    }
+                    score += 30;
+                    matched = true;
+                }
+            }
+
+            if (matched) {
+                renderSlot();
+                updateHUD();
+                setTimeout(checkMatch, 100);
+                return;
+            }
+
+            // 检查胜利
+            if (tiles.every(t => t.removed) && slot.length === 0) {
+                winGame();
+                return;
+            }
+
+            // 检查失败
+            if (slot.length >= SLOT_MAX) {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            gameOver = true;
+            document.getElementById('overlay-title').textContent = '游戏结束';
+            document.getElementById('overlay-text').textContent = `最终得分：${score}`;
+            overlayEl.classList.add('show');
+        }
+
+        function winGame() {
+            gameOver = true;
+            score += 200;
+            updateHUD();
+            document.getElementById('overlay-title').textContent = '🎉 恭喜过关！';
+            document.getElementById('overlay-text').textContent = `最终得分：${score}`;
+            overlayEl.classList.add('show');
+        }
+
+        function initGame() {
+            gameOver = false;
+            score = 0;
+            slot = [];
+            overlayEl.classList.remove('show');
+            buildTiles();
+            renderBoard();
+            renderSlot();
+            updateHUD();
+        }
+
+        // 窗口尺寸变化时重新布局
+        let resizeTimer = null;
+        window.addEventListener('resize', () => {
+            if (gameOver) return;
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                if (gameOver) return;
+                // 保存当前状态简单重置（避免位置错乱）
+                // 注：为了简单起见，这里直接重新渲染，位置可能稍有变化
+                renderBoard();
+            }, 300);
+        });
+
+        window.addEventListener('load', () => {
+            setTimeout(initGame, 50);
+        });
+    </script>
+</body>
+</html>

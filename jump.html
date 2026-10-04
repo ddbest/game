@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跳一跳</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .header h1 {
+            font-size: 1.6em;
+            color: #764ba2;
+        }
+
+        .hud {
+            display: flex;
+            justify-content: space-around;
+            background: #f3f0ff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        .hud span {
+            color: #764ba2;
+        }
+
+        .canvas-wrap {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        canvas {
+            background: #faf8ff;
+            border-radius: 12px;
+            display: block;
+            max-width: 100%;
+            height: auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.78);
+            border-radius: 12px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            gap: 14px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .overlay.show {
+            display: flex;
+        }
+
+        .overlay h2 {
+            font-size: 1.6em;
+        }
+
+        .overlay p {
+            font-size: 1em;
+            color: #ddd;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 14px;
+        }
+
+        button, .link-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 0.95em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 12px rgba(118, 75, 162, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #764ba2;
+        }
+
+        .btn-primary:hover, .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+        }
+
+        .rules {
+            margin-top: 14px;
+            background: #faf8ff;
+            border-left: 4px solid #764ba2;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .rules h3 {
+            color: #764ba2;
+            margin-bottom: 6px;
+            font-size: 1em;
+        }
+
+        .key-hint {
+            display: inline-block;
+            background: #ede8ff;
+            border: 1px solid #d4c8ff;
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-family: monospace;
+            font-size: 0.9em;
+            margin: 0 2px;
+            color: #764ba2;
+        }
+
+        @media (max-width: 460px) {
+            .header h1 { font-size: 1.3em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🐸 跳一跳 🐸</h1>
+        </div>
+
+        <div class="hud">
+            <div>得分：<span id="score">0</span></div>
+            <div>最高分：<span id="best">0</span></div>
+            <div>连击：<span id="combo">0</span></div>
+        </div>
+
+        <div class="canvas-wrap">
+            <canvas id="game" width="400" height="560"></canvas>
+            <div class="overlay" id="overlay">
+                <h2 id="overlay-title">游戏结束</h2>
+                <p id="overlay-text">得分：0</p>
+                <button class="btn-primary" onclick="initGame()">再来一局</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-primary" onclick="initGame()">🔄 重新开始</button>
+            <a href="index.html" class="link-btn btn-secondary">🏠 返回主页</a>
+        </div>
+
+        <div class="rules">
+            <h3>📖 游戏说明</h3>
+            <p>1. 按住屏幕（或 <span class="key-hint">空格</span> / 鼠标左键）蓄力，松开后小青蛙会跳向下一个方块。</p>
+            <p>2. 按住时间越长，跳得越远。松手时若精准落在方块上，得分并继续。</p>
+            <p>3. 落在方块中心区域可获得"完美"加成，连击越高分数越多。</p>
+            <p>4. 如果跳歪了、掉下平台或跳过头，游戏结束。</p>
+            <p>5. 每次成功后，方块会随机生成距离，越到后面难度越高。</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+
+        const GROUND_Y = H - 120;        // 方块顶面 y 坐标（视觉上稍低于中线）
+        const MIN_BLOCK_W = 45;
+        const MAX_BLOCK_W = 80;
+        const MIN_GAP = 60;
+        const MAX_GAP = 200;
+        const PLAYER_R = 18;
+
+        let score = 0;
+        let best = parseInt(localStorage.getItem('jump_best') || '0', 10);
+        let combo = 0;
+
+        let gameOver = false;
+        let isCharging = false;
+        let chargeStart = 0;
+        let chargePower = 0;
+
+        // 游戏世界对象
+        let blocks = [];      // 每个 { x, w, color, perfectZone }
+        let player = {       // 小青蛙
+            x: 0, y: 0,
+            scaleX: 1, scaleY: 1,
+            jumpT: 0,          // 跳跃动画进度 0-1
+            jumping: false,
+            fromX: 0, fromY: 0,
+            toX: 0, toY: 0,
+            arcHeight: 120,
+            rotation: 0
+        };
+        let cameraX = 0;
+        let particles = [];
+
+        const bestEl = document.getElementById('best');
+        const scoreEl = document.getElementById('score');
+        const comboEl = document.getElementById('combo');
+        const overlayEl = document.getElementById('overlay');
+
+        bestEl.textContent = best;
+
+        function randomColor() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#ffd93d', '#a8e063', '#c084fc', '#ff9f68'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function createBlock(x, w) {
+            return {
+                x, w,
+                color: randomColor(),
+                // 完美区域是方块中心 30% 宽度
+                perfectStart: x + w * 0.35,
+                perfectEnd: x + w * 0.65
+            };
+        }
+
+        function initGame() {
+            gameOver = false;
+            score = 0;
+            combo = 0;
+            isCharging = false;
+            chargePower = 0;
+            particles = [];
+            cameraX = 0;
+
+            scoreEl.textContent = 0;
+            comboEl.textContent = 0;
+            overlayEl.classList.remove('show');
+
+            // 初始方块（第一个大一点方便起步）
+            blocks = [createBlock(60, 90)];
+
+            // 生成后续方块（先预生成 3 个）
+            let lastX = 60 + 90;
+            for (let i = 0; i < 3; i++) {
+                const gap = MIN_GAP + Math.random() * (MAX_GAP - MIN_GAP);
+                const w = MIN_BLOCK_W + Math.random() * (MAX_BLOCK_W - MIN_BLOCK_W);
+                lastX += gap;
+                blocks.push(createBlock(lastX, w));
+                lastX += w;
+            }
+
+            // 玩家站在第一块中间
+            const first = blocks[0];
+            player.x = first.x + first.w / 2;
+            player.y = GROUND_Y;
+            player.scaleX = 1;
+            player.scaleY = 1;
+            player.jumping = false;
+
+            // 让玩家处于视野内
+            cameraX = 0;
+        }
+
+        // 简单绘制圆角矩形
+        function roundRect(x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+
+        function drawBackground() {
+            // 天空渐变
+            const grad = ctx.createLinearGradient(0, 0, 0, H);
+            grad.addColorStop(0, '#e0e7ff');
+            grad.addColorStop(1, '#faf8ff');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+
+            // 远景装饰圆
+            ctx.fillStyle = 'rgba(118, 75, 162, 0.06)';
+            for (let i = 0; i < 6; i++) {
+                const cx = ((i * 200 - cameraX * 0.2) % (W + 300)) - 100;
+                ctx.beginPath();
+                ctx.arc(cx, 80 + (i % 3) * 60, 70, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawBlocks() {
+            for (const b of blocks) {
+                const bx = b.x - cameraX;
+                if (bx + b.w < -50 || bx > W + 50) continue;
+
+                // 方块主体
+                ctx.fillStyle = b.color;
+                roundRect(bx, GROUND_Y, b.w, H - GROUND_Y, 8);
+                ctx.fill();
+
+                // 顶部亮色高光
+                ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                roundRect(bx + 4, GROUND_Y + 3, b.w - 8, 10, 4);
+                ctx.fill();
+
+                // 完美区域标识
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.fillRect(b.perfectStart - cameraX, GROUND_Y, b.perfectEnd - b.perfectStart, 4);
+            }
+        }
+
+        function drawPlayer() {
+            const px = player.x - cameraX;
+            const py = player.y;
+
+            ctx.save();
+            ctx.translate(px, py);
+            ctx.scale(player.scaleX, player.scaleY);
+            if (player.jumping) {
+                ctx.rotate(player.rotation);
+            }
+
+            // 身体（绿色椭圆）
+            ctx.fillStyle = '#56c050';
+            ctx.beginPath();
+            ctx.ellipse(0, -PLAYER_R * 0.2, PLAYER_R, PLAYER_R * 0.9, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 肚皮浅色
+            ctx.fillStyle = '#a8e063';
+            ctx.beginPath();
+            ctx.ellipse(0, 2, PLAYER_R * 0.6, PLAYER_R * 0.55, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 眼睛
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(-6, -8, 5, 0, Math.PI * 2);
+            ctx.arc(6, -8, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-6, -8, 2.5, 0, Math.PI * 2);
+            ctx.arc(6, -8, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 腮红
+            ctx.fillStyle = 'rgba(255, 100, 100, 0.5)';
+            ctx.beginPath();
+            ctx.arc(-11, 0, 3, 0, Math.PI * 2);
+            ctx.arc(11, 0, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+
+            // 蓄力指示条（小青蛙上方）
+            if (isCharging) {
+                const barW = 70;
+                const barH = 10;
+                const bx = px - barW / 2;
+                const by = py - PLAYER_R * 2 - 30;
+
+                ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                roundRect(bx, by, barW, barH, 5);
+                ctx.fill();
+
+                const ratio = Math.min(1, chargePower);
+                const grad = ctx.createLinearGradient(bx, 0, bx + barW, 0);
+                grad.addColorStop(0, '#4ecdc4');
+                grad.addColorStop(0.6, '#ffd93d');
+                grad.addColorStop(1, '#ff6b6b');
+                ctx.fillStyle = grad;
+                roundRect(bx, by, barW * ratio, barH, 5);
+                ctx.fill();
+
+                ctx.strokeStyle = '#764ba2';
+                ctx.lineWidth = 2;
+                roundRect(bx, by, barW, barH, 5);
+                ctx.stroke();
+            }
+        }
+
+        function drawParticles() {
+            for (const p of particles) {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x - cameraX, p.y, p.r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function drawHint() {
+            if (!isCharging && !player.jumping && !gameOver) {
+                ctx.fillStyle = 'rgba(118, 75, 162, 0.7)';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('按住蓄力，松开跳跃', W / 2, 30);
+            }
+        }
+
+        function render() {
+            drawBackground();
+            drawBlocks();
+            drawParticles();
+            drawPlayer();
+            drawHint();
+        }
+
+        // 通过玩家位置判断跳跃距离是否落在下一个方块
+        function attemptJump() {
+            // 计算起跳方块（玩家当前所在的方块）
+            const fromBlock = blocks.find(b =>
+                player.x >= b.x && player.x <= b.x + b.w
+            ) || blocks[0];
+
+            // 下一个方块
+            const fromIndex = blocks.indexOf(fromBlock);
+            const nextBlock = blocks[fromIndex + 1];
+
+            // 蓄力换算跳跃距离
+            const jumpDistance = 40 + chargePower * 260; // 40 ~ 300
+
+            const fromX = player.x;
+            const toX = fromX + jumpDistance;
+
+            // 动画参数
+            player.fromX = fromX;
+            player.fromY = player.y;
+            player.toX = toX;
+            player.toY = GROUND_Y;
+            player.jumping = true;
+            player.jumpT = 0;
+            player.rotation = 0;
+
+            // 判定落地是否在某个方块上（优先下一个方块）
+            const target = blocks.find(b =>
+                toX >= b.x + 4 && toX <= b.x + b.w - 4
+            );
+
+            let success = false;
+            let perfect = false;
+            let landedBlock = null;
+
+            if (nextBlock && toX >= nextBlock.x + 4 && toX <= nextBlock.x + nextBlock.w - 4) {
+                success = true;
+                landedBlock = nextBlock;
+                if (toX >= nextBlock.perfectStart && toX <= nextBlock.perfectEnd) {
+                    perfect = true;
+                }
+            } else if (target && target !== fromBlock) {
+                success = true;
+                landedBlock = target;
+                if (toX >= target.perfectStart && toX <= target.perfectEnd) {
+                    perfect = true;
+                }
+            }
+
+            // 记录落地结果，动画结束后处理
+            player.result = { success, perfect, landedBlock, fromIndex, nextBlock };
+        }
+
+        function onJumpEnd() {
+            const { success, perfect, landedBlock, fromIndex } = player.result || {};
+            player.jumping = false;
+            player.scaleX = 1;
+            player.scaleY = 1;
+            player.rotation = 0;
+
+            if (!success || !landedBlock) {
+                // 跳歪 → 失败
+                // 让玩家落到地面下方（视觉上掉落）
+                player.y = GROUND_Y + 60;
+                setTimeout(() => {
+                    endGame();
+                }, 350);
+                return;
+            }
+
+            // 成功落在方块上
+            player.x = Math.max(landedBlock.x + 6, Math.min(player.x, landedBlock.x + landedBlock.w - 6));
+            player.y = GROUND_Y;
+
+            // 计算得分
+            if (perfect) {
+                combo++;
+                const bonus = 2 + Math.floor(combo / 2);
+                score += 2 + bonus;
+                spawnParticles(player.x, GROUND_Y, '#ffd93d', 12);
+            } else {
+                combo = 0;
+                score += 1;
+                spawnParticles(player.x, GROUND_Y, '#a8e063', 6);
+            }
+
+            if (score > best) {
+                best = score;
+                localStorage.setItem('jump_best', best);
+                bestEl.textContent = best;
+            }
+            scoreEl.textContent = score;
+            comboEl.textContent = combo;
+
+            // 玩家站在新方块上
+            const newIndex = blocks.indexOf(landedBlock);
+            // 保证后面至少还有 2 个方块
+            while (blocks.length - newIndex - 1 < 2) {
+                const last = blocks[blocks.length - 1];
+                const gap = MIN_GAP + Math.random() * (MAX_GAP - MIN_GAP);
+                const w = MIN_BLOCK_W + Math.random() * (MAX_BLOCK_W - MIN_BLOCK_W);
+                blocks.push(createBlock(last.x + last.w + gap, w));
+            }
+
+            // 移除太远的方块
+            while (blocks.length > 6 && blocks[0].x + blocks[0].w < landedBlock.x - 200) {
+                blocks.shift();
+            }
+        }
+
+        function spawnParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x, y: y - 10,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: -Math.random() * 6 - 2,
+                    r: 2 + Math.random() * 3,
+                    life: 1,
+                    color
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.35;
+                p.life -= 0.025;
+                if (p.life <= 0 || p.y > H + 50) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function endGame() {
+            gameOver = true;
+            document.getElementById('overlay-title').textContent = '游戏结束';
+            document.getElementById('overlay-text').textContent = `最终得分：${score}`;
+            overlayEl.classList.add('show');
+        }
+
+        // ---- 事件处理 ----
+
+        function startCharge() {
+            if (gameOver || player.jumping || isCharging) return;
+            isCharging = true;
+            chargeStart = performance.now();
+            chargePower = 0;
+        }
+
+        function releaseCharge() {
+            if (!isCharging) return;
+            isCharging = false;
+            if (gameOver || player.jumping) return;
+            // 至少要蓄一点力
+            if (chargePower < 0.02) chargePower = 0.02;
+            attemptJump();
+        }
+
+        // 鼠标
+        canvas.addEventListener('mousedown', (e) => { e.preventDefault(); startCharge(); });
+        window.addEventListener('mouseup', () => { if (isCharging) releaseCharge(); });
+
+        // 触摸
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startCharge(); }, { passive: false });
+        canvas.addEventListener('touchend', (e) => { e.preventDefault(); if (isCharging) releaseCharge(); }, { passive: false });
+
+        // 键盘
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                e.preventDefault();
+                if (!isCharging && !gameOver && !player.jumping) startCharge();
+            }
+        });
+        document.addEventListener('keyup', (e) => {
+            if (e.key === ' ') {
+                e.preventDefault();
+                if (isCharging) releaseCharge();
+            }
+        });
+
+        // ---- 主循环 ----
+        function loop() {
+            if (!gameOver) {
+                // 蓄力增长
+                if (isCharging) {
+                    const elapsed = performance.now() - chargeStart;
+                    chargePower = Math.min(1, elapsed / 700); // 0.7 秒到满
+                    // 玩家被压缩
+                    player.scaleX = 1 + chargePower * 0.25;
+                    player.scaleY = 1 - chargePower * 0.35;
+                } else {
+                    player.scaleX += (1 - player.scaleX) * 0.25;
+                    player.scaleY += (1 - player.scaleY) * 0.25;
+                }
+
+                // 跳跃动画
+                if (player.jumping) {
+                    player.jumpT += 0.055;
+                    if (player.jumpT >= 1) {
+                        player.jumpT = 1;
+                        player.x = player.toX;
+                        player.y = player.toY;
+                        onJumpEnd();
+                    } else {
+                        const t = player.jumpT;
+                        player.x = player.fromX + (player.toX - player.fromX) * t;
+                        // 抛物线
+                        const arc = Math.sin(Math.PI * t) * player.arcHeight;
+                        player.y = player.fromY + (player.toY - player.fromY) * t - arc;
+                        // 旋转
+                        player.rotation = t * Math.PI * 2 * (player.toX > player.fromX ? 1 : -1);
+                    }
+                }
+
+                updateParticles();
+
+                // 摄像机跟随玩家
+                const targetCam = Math.max(0, player.x - W * 0.35);
+                cameraX += (targetCam - cameraX) * 0.12;
+            }
+
+            render();
+            requestAnimationFrame(loop);
+        }
+
+        initGame();
+        loop();
+    </script>
+</body>
+</html>

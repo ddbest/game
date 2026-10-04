@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开心消消乐</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header h1 {
+            font-size: 1.6em;
+            color: #764ba2;
+            flex: 1;
+            text-align: center;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            background: #f0f0f0;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .score-board span {
+            color: #764ba2;
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            background: #ddd;
+            padding: 8px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            user-select: none;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            background: #fff;
+            box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .cell:hover {
+            transform: scale(1.05);
+        }
+
+        .cell.selected {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 3px #764ba2, 0 0 15px #764ba2;
+            z-index: 10;
+        }
+
+        .cell.pop {
+            animation: pop 0.3s ease-out;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); opacity: 0.7; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .cell.drop {
+            animation: drop 0.3s ease-out;
+        }
+
+        @keyframes drop {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button, .link-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 0.95em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 12px rgba(118, 75, 162, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #764ba2;
+        }
+
+        .btn-primary:hover, .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+        }
+
+        .rules {
+            margin-top: 15px;
+            background: #faf8ff;
+            border-left: 4px solid #764ba2;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .rules h3 {
+            color: #764ba2;
+            margin-bottom: 6px;
+            font-size: 1em;
+        }
+
+        .message {
+            text-align: center;
+            color: #e74c3c;
+            font-weight: bold;
+            height: 20px;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 420px) {
+            .cell { font-size: 1.2em; }
+            .header h1 { font-size: 1.3em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🍬 开心消消乐 🍬</h1>
+        </div>
+
+        <div class="score-board">
+            <div>得分：<span id="score">0</span></div>
+            <div>步数：<span id="moves">0</span></div>
+        </div>
+
+        <div class="message" id="message"></div>
+
+        <div id="game-board"></div>
+
+        <div class="controls">
+            <button class="btn-primary" onclick="initGame()">🔄 重新开始</button>
+            <a href="index.html" class="link-btn btn-secondary">🏠 返回主页</a>
+        </div>
+
+        <div class="rules">
+            <h3>📖 游戏说明</h3>
+            <p>1. 点击一个方块，再点击相邻的方块，交换它们的位置。</p>
+            <p>2. 如果交换后能形成三个或以上相同图案的横排或竖排，就会消除并得分。</p>
+            <p>3. 如果交换后无法消除，方块会自动换回原位。</p>
+            <p>4. 消除后上方的方块会掉落，并补充新方块，可能产生连锁消除。</p>
+            <p>5. 每次有效交换算一步，快来挑战高分吧！</p>
+        </div>
+    </div>
+
+    <script>
+        const ROWS = 8;
+        const COLS = 8;
+        const SYMBOLS = ['🍎', '🍇', '🍋', '🍊', '🫐', '🍓'];
+        const POINTS_PER_TILE = 10;
+
+        let board = [];
+        let score = 0;
+        let moves = 0;
+        let selected = null;
+        let isProcessing = false;
+
+        const boardEl = document.getElementById('game-board');
+        const scoreEl = document.getElementById('score');
+        const movesEl = document.getElementById('moves');
+        const messageEl = document.getElementById('message');
+
+        function randomSymbol() {
+            return SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+        }
+
+        // 初始化棋盘，确保没有初始三连
+        function createBoard() {
+            board = [];
+            for (let r = 0; r < ROWS; r++) {
+                board[r] = [];
+                for (let c = 0; c < COLS; c++) {
+                    let symbol;
+                    do {
+                        symbol = randomSymbol();
+                    } while (
+                        (c >= 2 && board[r][c - 1] === symbol && board[r][c - 2] === symbol) ||
+                        (r >= 2 && board[r - 1][c] === symbol && board[r - 2][c] === symbol)
+                    );
+                    board[r][c] = symbol;
+                }
+            }
+        }
+
+        function renderBoard(animatePop = [], animateDrop = []) {
+            boardEl.innerHTML = '';
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    cell.textContent = board[r][c];
+
+                    if (selected && selected.row === r && selected.col === c) {
+                        cell.classList.add('selected');
+                    }
+                    if (animatePop.some(p => p.row === r && p.col === c)) {
+                        cell.classList.add('pop');
+                    }
+                    if (animateDrop.some(p => p.row === r && p.col === c)) {
+                        cell.classList.add('drop');
+                    }
+
+                    cell.addEventListener('click', () => onCellClick(r, c));
+                    boardEl.appendChild(cell);
+                }
+            }
+            scoreEl.textContent = score;
+            movesEl.textContent = moves;
+        }
+
+        function onCellClick(r, c) {
+            if (isProcessing) return;
+            messageEl.textContent = '';
+
+            if (!selected) {
+                selected = { row: r, col: c };
+                renderBoard();
+                return;
+            }
+
+            if (selected.row === r && selected.col === c) {
+                selected = null;
+                renderBoard();
+                return;
+            }
+
+            const isAdjacent = Math.abs(selected.row - r) + Math.abs(selected.col - c) === 1;
+            if (!isAdjacent) {
+                selected = { row: r, col: c };
+                renderBoard();
+                return;
+            }
+
+            // 交换
+            const first = selected;
+            selected = null;
+            swapTiles(first.row, first.col, r, c);
+            renderBoard();
+
+            isProcessing = true;
+            setTimeout(() => {
+                const matches = findMatches();
+                if (matches.length === 0) {
+                    // 换回来
+                    swapTiles(first.row, first.col, r, c);
+                    renderBoard();
+                    messageEl.textContent = '这样交换无法消除哦～';
+                    isProcessing = false;
+                } else {
+                    moves++;
+                    movesEl.textContent = moves;
+                    processMatches();
+                }
+            }, 200);
+        }
+
+        function swapTiles(r1, c1, r2, c2) {
+            const temp = board[r1][c1];
+            board[r1][c1] = board[r2][c2];
+            board[r2][c2] = temp;
+        }
+
+        function findMatches() {
+            const matched = new Set();
+
+            // 横向检测
+            for (let r = 0; r < ROWS; r++) {
+                let count = 1;
+                for (let c = 1; c <= COLS; c++) {
+                    if (c < COLS && board[r][c] === board[r][c - 1] && board[r][c] !== null) {
+                        count++;
+                    } else {
+                        if (count >= 3) {
+                            for (let k = c - count; k < c; k++) {
+                                matched.add(`${r},${k}`);
+                            }
+                        }
+                        count = 1;
+                    }
+                }
+            }
+
+            // 纵向检测
+            for (let c = 0; c < COLS; c++) {
+                let count = 1;
+                for (let r = 1; r <= ROWS; r++) {
+                    if (r < ROWS && board[r][c] === board[r - 1][c] && board[r][c] !== null) {
+                        count++;
+                    } else {
+                        if (count >= 3) {
+                            for (let k = r - count; k < r; k++) {
+                                matched.add(`${k},${c}`);
+                            }
+                        }
+                        count = 1;
+                    }
+                }
+            }
+
+            return Array.from(matched).map(str => {
+                const [row, col] = str.split(',').map(Number);
+                return { row, col };
+            });
+        }
+
+        function processMatches() {
+            const matches = findMatches();
+            if (matches.length === 0) {
+                // 检查是否还有可行操作
+                if (!hasPossibleMoves()) {
+                    messageEl.textContent = '没有可行的操作了，已自动重新开始！';
+                    setTimeout(() => initGame(), 1500);
+                }
+                isProcessing = false;
+                return;
+            }
+
+            // 加分
+            score += matches.length * POINTS_PER_TILE;
+            scoreEl.textContent = score;
+
+            // 消除动画
+            renderBoard(matches, []);
+
+            setTimeout(() => {
+                // 移除匹配的方块
+                matches.forEach(({ row, col }) => {
+                    board[row][col] = null;
+                });
+
+                // 下落
+                const dropPositions = [];
+                for (let c = 0; c < COLS; c++) {
+                    let writeRow = ROWS - 1;
+                    for (let r = ROWS - 1; r >= 0; r--) {
+                        if (board[r][c] !== null) {
+                            if (writeRow !== r) {
+                                board[writeRow][c] = board[r][c];
+                                board[r][c] = null;
+                                dropPositions.push({ row: writeRow, col: c });
+                            }
+                            writeRow--;
+                        }
+                    }
+                    // 补充新方块
+                    for (let r = writeRow; r >= 0; r--) {
+                        board[r][c] = randomSymbol();
+                        dropPositions.push({ row: r, col: c });
+                    }
+                }
+
+                renderBoard([], dropPositions);
+
+                setTimeout(() => {
+                    processMatches();
+                }, 300);
+            }, 300);
+        }
+
+        // 检查是否还有可行操作（简单版：检查所有相邻交换）
+        function hasPossibleMoves() {
+            const dirs = [[0, 1], [1, 0]];
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    for (const [dr, dc] of dirs) {
+                        const nr = r + dr, nc = c + dc;
+                        if (nr < ROWS && nc < COLS) {
+                            swapTiles(r, c, nr, nc);
+                            const hasMatch = findMatches().length > 0;
+                            swapTiles(r, c, nr, nc);
+                            if (hasMatch) return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function initGame() {
+            board = [];
+            score = 0;
+            moves = 0;
+            selected = null;
+            isProcessing = false;
+            messageEl.textContent = '';
+            createBoard();
+
+            // 确保初始棋盘没有三连且至少有一个可行操作
+            let attempts = 0;
+            while ((findMatches().length > 0 || !hasPossibleMoves()) && attempts < 100) {
+                createBoard();
+                attempts++;
+            }
+
+            renderBoard();
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
