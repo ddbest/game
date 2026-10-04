@@ -1,103 +1,124 @@
 <!DOCTYPE html>
-<!-- 文档声明，告诉浏览器这是HTML5 -->
 <html lang="zh-CN">
-<!-- html根标签，lang表示页面语言 -->
 <head>
-    <!-- 头部，存放页面元信息，不会直接显示在页面上 -->
     <meta charset="UTF-8">
-    <!-- 设置字符编码，防止中文乱码 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 适配移动端 -->
-    <title>HTML CSS JS基础演示</title>
-    <!-- 网页标题 -->
-
-    <!-- CSS 内部样式表 -->
+    <title>猜数字小游戏</title>
     <style>
-        /* CSS注释，选择器{属性:值;} */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         body {
-            background-color: #f0f8ff;
+            background-color: #16213e;
+            color: #fff;
             font-family: "Microsoft Yahei", sans-serif;
-            padding: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
-        .box {
-            width: 500px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px #ccc;
+        .game-box {
+            background-color: #0f3460;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
         }
         h1 {
-            color: #2c3e50;
-            text-align: center;
             margin-bottom: 20px;
+            color: #e94560;
         }
         p {
-            font-size: 16px;
-            line-height: 1.8;
-            margin:10px 0;
+            margin:12px 0;
+            font-size:18px;
+        }
+        input {
+            width: 70%;
+            padding:10px;
+            font-size:18px;
+            border-radius:8px;
+            border:none;
+            outline:none;
+            text-align:center;
         }
         button {
-            padding: 8px 16px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size:16px;
+            margin-top:15px;
+            padding:10px 24px;
+            font-size:18px;
+            border:none;
+            border-radius:8px;
+            background:#e94560;
+            color:#fff;
+            cursor:pointer;
         }
         button:hover {
-            background-color: #2980b9;
+            background:#c7344c;
+        }
+        #tip {
+            font-size:20px;
+            margin-top:20px;
+            font-weight:bold;
         }
     </style>
 </head>
 <body>
-    <!-- body标签：页面所有可见内容都写在这里 -->
-    <div class="box">
-        <h1>前端三剑客基础演示</h1>
-        <p id="text">点击下方按钮，我会变化！</p>
-        <button onclick="changeText()">点击我(行内事件)</button>
-        <br><br>
-        <button id="btn2">JS绑定点击事件</button>
-
-        <h3>HTML基础标签演示</h3>
-        <p>文本段落 <b>加粗</b> <i>斜体</i></p>
-        <ul>
-            <li>无序列表项1</li>
-            <li>无序列表项2</li>
-        </ul>
-        <a href="https://www.baidu.com" target="_blank">超链接(新窗口打开)</a>
+    <div class="game-box">
+        <h1>🎮 猜数字游戏</h1>
+        <p>我想了一个 1~100 的数字，你来猜猜看！</p>
+        <input type="number" id="guessInput" placeholder="输入数字" min="1" max="100">
+        <br>
+        <button onclick="checkNumber()">提交猜测</button>
+        <button onclick="restartGame()">重新开始</button>
+        <div id="tip"></div>
+        <p>猜测次数：<span id="count">0</span></p>
     </div>
 
-    <!-- JavaScript 代码，一般放在body末尾，页面加载完再执行JS -->
     <script>
-        // JS单行注释
-        /* JS多行注释 */
-        // 1. 变量声明
-        let msg = "文本已经被JS修改啦🎉";
-        const color = "#e74c3c";
+        // 生成1~100随机数
+        let secretNum = Math.floor(Math.random() * 100) + 1;
+        let count = 0;
 
-        // 2. 函数定义
-        function changeText() {
-            // DOM操作：获取元素
-            let dom = document.getElementById("text");
-            dom.innerText = msg;
-            dom.style.color = color;
+        const tipDom = document.getElementById('tip');
+        const countDom = document.getElementById('count');
+        const inputDom = document.getElementById('guessInput');
+
+        function checkNumber(){
+            let value = Number(inputDom.value);
+            // 判断输入合法性
+            if(isNaN(value) || value <1 || value>100){
+                tipDom.innerText = "请输入1-100之间的数字！";
+                tipDom.style.color="#ffd369";
+                return;
+            }
+            count++;
+            countDom.innerText = count;
+
+            if(value > secretNum){
+                tipDom.innerText = "📈 太大了，再小一点！";
+                tipDom.style.color="#ff6b6b";
+            }else if(value < secretNum){
+                tipDom.innerText = "📉 太小了，再大一点！";
+                tipDom.style.color="#4ecdc4";
+            }else{
+                tipDom.innerText = `🎉恭喜你猜对啦！答案就是${secretNum}`;
+                tipDom.style.color="#7bed9f";
+            }
+            //清空输入框
+            inputDom.value = "";
         }
 
-        // 3. 获取元素 + 绑定事件（推荐方式，分离HTML和JS）
-        let btn2 = document.getElementById("btn2");
-        btn2.addEventListener("click", function(){
-            alert("你点击了第二个按钮！");
-        });
-
-        // 4. 控制台输出，浏览器F12打开控制台查看
-        console.log("页面JS加载完成");
+        // 重置游戏
+        function restartGame(){
+            secretNum = Math.floor(Math.random() * 100) + 1;
+            count = 0;
+            countDom.innerText = 0;
+            tipDom.innerText = "";
+            inputDom.value = "";
+        }
     </script>
 </body>
 </html>
