@@ -17,56 +17,63 @@
         html, body {
             height: 100%;
             overflow: hidden;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 8px;
-            color: #333;
-            touch-action: manipulation;
+            padding: 6px;
+            touch-action: none;
+            overscroll-behavior: none;
         }
 
         .game-container {
             background: white;
-            border-radius: 16px;
-            padding: 12px;
+            border-radius: 14px;
+            padding: 10px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            max-width: 480px;
             width: 100%;
+            max-width: 460px;
+            height: 100%;
             max-height: 100vh;
             display: flex;
             flex-direction: column;
+            gap: 8px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 8px;
             flex-shrink: 0;
         }
 
         .header h1 {
-            font-size: 1.2em;
+            font-size: 1.1em;
             color: #2a5298;
         }
 
-        /* 游戏区布局：手机端上下排布，桌面左右排布 */
+        /* 游戏区：棋盘 + 侧栏 */
         .game-area {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             justify-content: center;
-            align-items: flex-start;
+            align-items: stretch;
             flex: 1;
             min-height: 0;
         }
 
         .board-wrap {
             position: relative;
-            flex-shrink: 0;
+            flex: 0 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         #game-board {
@@ -77,9 +84,9 @@
             background: #1a1a2e;
             padding: 3px;
             border-radius: 8px;
-            width: 44vw;
-            max-width: 240px;
+            height: 100%;
             aspect-ratio: 1 / 2;
+            max-height: 100%;
         }
 
         .cell {
@@ -94,26 +101,30 @@
         .side-panel {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            flex: 1;
+            gap: 6px;
+            flex: 0 0 90px;
             min-width: 0;
         }
 
         .info-box {
             background: #f0f4ff;
             border-radius: 8px;
-            padding: 6px 8px;
+            padding: 5px 4px;
             text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .info-box .label {
-            font-size: 0.7em;
+            font-size: 0.65em;
             color: #666;
             margin-bottom: 2px;
         }
 
         .info-box .value {
-            font-size: 1.1em;
+            font-size: 1em;
             font-weight: bold;
             color: #2a5298;
         }
@@ -121,12 +132,13 @@
         .next-box {
             background: #f0f4ff;
             border-radius: 8px;
-            padding: 6px 8px;
+            padding: 5px 4px;
             text-align: center;
+            flex: 0 0 auto;
         }
 
         .next-box .label {
-            font-size: 0.7em;
+            font-size: 0.65em;
             color: #666;
             margin-bottom: 4px;
         }
@@ -136,8 +148,8 @@
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(4, 1fr);
             gap: 2px;
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             margin: 0 auto;
             background: #1a1a2e;
             padding: 2px;
@@ -169,26 +181,25 @@
         }
 
         .overlay h2 {
-            font-size: 1.3em;
+            font-size: 1.2em;
         }
 
         .overlay p {
-            font-size: 0.9em;
+            font-size: 0.85em;
             color: #aac;
         }
 
-        /* 游戏操作按钮（触摸） */
+        /* 操作按钮：固定在底部 */
         .touch-pad {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
-            margin-top: 10px;
             flex-shrink: 0;
         }
 
         .touch-pad button {
-            padding: 14px 4px;
-            font-size: 1.1em;
+            padding: 12px 2px;
+            font-size: 0.95em;
             font-weight: bold;
             border: none;
             border-radius: 10px;
@@ -197,10 +208,12 @@
             cursor: pointer;
             transition: transform 0.1s, background 0.15s;
             touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .touch-pad button:active {
-            transform: scale(0.92);
+            transform: scale(0.9);
             background: #b8c8e8;
         }
 
@@ -209,32 +222,33 @@
             color: white;
         }
 
-        .controls {
+        /* 底部按钮（重新开始 + 返回主页） */
+        .bottom-bar {
             display: flex;
             gap: 8px;
-            flex-wrap: wrap;
             justify-content: center;
-            margin-top: 10px;
             flex-shrink: 0;
         }
 
-        button.ctrl, .link-btn {
-            padding: 10px 18px;
+        .bottom-bar button, .bottom-bar .link-btn {
+            flex: 1;
+            padding: 9px 6px;
             border: none;
-            border-radius: 25px;
-            font-size: 0.85em;
+            border-radius: 20px;
+            font-size: 0.8em;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.15s, box-shadow 0.15s;
             text-decoration: none;
-            display: inline-block;
             text-align: center;
+            transition: transform 0.15s;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             color: white;
-            box-shadow: 0 4px 12px rgba(42, 82, 152, 0.4);
+            box-shadow: 0 3px 10px rgba(42, 82, 152, 0.4);
         }
 
         .btn-secondary {
@@ -242,29 +256,67 @@
             color: #2a5298;
         }
 
-        .btn-primary:hover, .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+        .bottom-bar button:active, .bottom-bar .link-btn:active {
+            transform: scale(0.95);
         }
 
-        .rules {
-            margin-top: 10px;
-            background: #fafbff;
-            border-left: 4px solid #2a5298;
-            padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 0.75em;
-            line-height: 1.5;
-            color: #555;
-            flex-shrink: 0;
-            max-height: 120px;
-            overflow-y: auto;
-        }
-
-        .rules h3 {
+        /* 说明：用可折叠的小图标，节省空间 */
+        .rules-toggle {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #f0f4ff;
             color: #2a5298;
-            margin-bottom: 4px;
-            font-size: 1em;
+            border: none;
+            font-size: 0.85em;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+        }
+
+        .rules-panel {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .rules-panel.show {
+            display: flex;
+        }
+
+        .rules-content {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            max-width: 320px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            font-size: 0.85em;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .rules-content h3 {
+            color: #2a5298;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        .rules-content p {
+            margin-bottom: 6px;
         }
 
         .key-hint {
@@ -279,81 +331,59 @@
             color: #2a5298;
         }
 
-        /* 电脑端：游戏区左右排布，按钮区更宽 */
+        .rules-content .close-btn {
+            display: block;
+            margin: 12px auto 0;
+            padding: 8px 24px;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* 电脑端稍微放大 */
         @media (min-width: 600px) {
-            .game-container {
-                padding: 20px;
-                max-width: 560px;
-            }
             .header h1 {
-                font-size: 1.5em;
-            }
-            #game-board {
-                width: 240px;
-                max-width: none;
-            }
-            .side-panel {
-                min-width: 130px;
-                flex: 0 0 auto;
-            }
-            .info-box .value {
                 font-size: 1.4em;
             }
-            #next-board {
-                width: 100px;
-                height: 100px;
+            .side-panel {
+                flex: 0 0 130px;
             }
-            .touch-pad {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 8px;
-                margin-top: 15px;
+            .info-box .value {
+                font-size: 1.3em;
+            }
+            #next-board {
+                width: 90px;
+                height: 90px;
             }
             .touch-pad button {
-                padding: 14px 8px;
+                padding: 14px 4px;
                 font-size: 1.05em;
             }
+            .bottom-bar button, .bottom-bar .link-btn {
+                font-size: 0.9em;
+                padding: 10px 8px;
+            }
         }
 
-        /* 小屏手机：更紧凑 */
-        @media (max-height: 700px) {
-            .rules {
+        /* 高度不足时进一步压缩 */
+        @media (max-height: 640px) {
+            .header {
                 display: none;
             }
-            .header {
-                margin-bottom: 4px;
-            }
-            .header h1 {
-                font-size: 1em;
-            }
-            .touch-pad {
-                margin-top: 6px;
+            .game-container {
+                padding: 8px;
+                gap: 6px;
             }
             .touch-pad button {
-                padding: 10px 4px;
-                font-size: 1em;
+                padding: 9px 2px;
+                font-size: 0.85em;
             }
-        }
-
-        /* 横屏手机：左右排布 */
-        @media (max-width: 900px) and (orientation: landscape) {
-            .game-container {
-                max-width: 95vw;
-                max-height: 95vh;
-                padding: 8px;
-            }
-            .header {
-                display: none;
-            }
-            .game-area {
-                flex-direction: row;
-            }
-            #game-board {
-                width: auto;
-                height: 70vh;
-                max-height: 70vh;
-            }
-            .rules {
-                display: none;
+            .bottom-bar button, .bottom-bar .link-btn {
+                padding: 7px 6px;
+                font-size: 0.75em;
             }
         }
     </style>
@@ -370,7 +400,7 @@
                 <div class="overlay" id="overlay">
                     <h2 id="overlay-title">游戏结束</h2>
                     <p id="overlay-text">最终得分：0</p>
-                    <button class="btn-primary" onclick="initGame()">再来一局</button>
+                    <button class="btn-primary" style="padding:10px 24px;border:none;border-radius:20px;color:white;font-weight:bold;cursor:pointer;" onclick="initGame()">再来一局</button>
                 </div>
             </div>
 
@@ -380,7 +410,7 @@
                     <div class="value" id="score">0</div>
                 </div>
                 <div class="info-box">
-                    <div class="label">消除行数</div>
+                    <div class="label">行数</div>
                     <div class="value" id="lines">0</div>
                 </div>
                 <div class="info-box">
@@ -396,26 +426,32 @@
 
         <!-- 触摸控制按钮 -->
         <div class="touch-pad">
-            <button onmousedown="moveLeft()" ontouchstart="event.preventDefault();moveLeft()" ontouchend="event.preventDefault();releaseBtn && releaseBtn()">← 左移</button>
-            <button onmousedown="rotate()" ontouchstart="event.preventDefault();rotate()">↻ 旋转</button>
-            <button onmousedown="moveRight()" ontouchstart="event.preventDefault();moveRight()">右移 →</button>
+            <button onmousedown="moveLeft()" ontouchstart="event.preventDefault();moveLeft()">← 左</button>
+            <button onmousedown="rotate()" ontouchstart="event.preventDefault();rotate()">↻ 旋</button>
+            <button onmousedown="moveRight()" ontouchstart="event.preventDefault();moveRight()">右 →</button>
             <button class="drop-btn" onmousedown="hardDrop()" ontouchstart="event.preventDefault();hardDrop()">⬇ 落底</button>
         </div>
 
-        <div class="controls">
-            <button class="btn-primary ctrl" onclick="initGame()">🔄 重新开始</button>
+        <!-- 底部按钮 -->
+        <div class="bottom-bar">
+            <button class="btn-primary" onclick="initGame()">🔄 重新开始</button>
             <a href="index.html" class="link-btn btn-secondary">🏠 返回主页</a>
         </div>
 
-        <div class="rules">
-            <h3>📖 游戏说明</h3>
-            <p>1. 让方块填满整行即可消除，堆到顶部游戏结束。</p>
-            <p>2. 电脑：<span class="key-hint">←</span><span class="key-hint">→</span> 移动，
-               <span class="key-hint">↑</span> 旋转，
-               <span class="key-hint">↓</span> 加速，
-               <span class="key-hint">空格</span> 落底。</p>
-            <p>3. 手机：点击下方按钮操作，或在棋盘上滑动操作。</p>
-            <p>4. 消除行数越多得分越高，每 10 行升一级，速度加快。</p>
+        <!-- 说明按钮和弹窗 -->
+        <button class="rules-toggle" onclick="toggleRules()">?</button>
+        <div class="rules-panel" id="rulesPanel">
+            <div class="rules-content">
+                <h3>📖 游戏说明</h3>
+                <p>1. 让方块填满整行即可消除，堆到顶部游戏结束。</p>
+                <p>2. 电脑：<span class="key-hint">←</span><span class="key-hint">→</span> 移动，
+                   <span class="key-hint">↑</span> 旋转，
+                   <span class="key-hint">↓</span> 加速，
+                   <span class="key-hint">空格</span> 落底。</p>
+                <p>3. 手机：点击下方按钮操作，或在棋盘上滑动操作。</p>
+                <p>4. 消除行数越多得分越高，每 10 行升一级，速度加快。</p>
+                <button class="close-btn" onclick="toggleRules()">知道了</button>
+            </div>
         </div>
     </div>
 
@@ -466,6 +502,10 @@
         const overlayEl = document.getElementById('overlay');
         const overlayTitle = document.getElementById('overlay-title');
         const overlayText = document.getElementById('overlay-text');
+
+        function toggleRules() {
+            document.getElementById('rulesPanel').classList.toggle('show');
+        }
 
         function createEmptyBoard() {
             board = [];
@@ -687,18 +727,16 @@
         }
 
         function update(time = 0) {
-            if (gameOver) {
-                requestAnimationFrame(update);
-                return;
-            }
-            const delta = time - lastTime;
-            lastTime = time;
+            if (!gameOver) {
+                const delta = time - lastTime;
+                lastTime = time;
 
-            if (!paused) {
-                dropCounter += delta;
-                if (dropCounter > dropInterval) {
-                    moveDown();
-                    dropCounter = 0;
+                if (!paused) {
+                    dropCounter += delta;
+                    if (dropCounter > dropInterval) {
+                        moveDown();
+                        dropCounter = 0;
+                    }
                 }
             }
             requestAnimationFrame(update);
@@ -726,7 +764,7 @@
             requestAnimationFrame(update);
         }
 
-        // 键盘控制（电脑）
+        // 键盘控制
         document.addEventListener('keydown', (e) => {
             if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', ' '].includes(e.key)) {
                 e.preventDefault();
@@ -740,7 +778,7 @@
             }
         });
 
-        // 触摸滑动控制（手机）
+        // 触摸滑动
         let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
         let touchMoved = false;
 
@@ -764,21 +802,18 @@
             const dt = Date.now() - touchStartTime;
             const absX = Math.abs(dx), absY = Math.abs(dy);
 
-            // 轻触 → 旋转
             if (!touchMoved && absX < 15 && absY < 15 && dt < 250) {
                 rotate();
                 return;
             }
 
             if (absX > absY) {
-                // 左右滑动
                 if (dx > 30) moveRight();
                 else if (dx < -30) moveLeft();
             } else {
-                // 上下滑动
-                if (dy > 60) hardDrop();      // 快速下滑 → 落底
-                else if (dy > 20) moveDown(); // 轻下滑 → 下移
-                else if (dy < -30) rotate();  // 上滑 → 旋转
+                if (dy > 60) hardDrop();
+                else if (dy > 20) moveDown();
+                else if (dy < -30) rotate();
             }
         }, { passive: true });
 
