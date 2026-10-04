@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>键盘移动方块游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #222;
+            color: #fff;
+            font-family: Microsoft Yahei;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding:30px 10px;
+        }
+        .rule{
+            background:#333;
+            padding:16px;
+            border-radius:10px;
+            max-width:420px;
+            margin-bottom:20px;
+            line-height:1.6;
+        }
+        #gameBox {
+            width: 400px;
+            height: 400px;
+            background: #333;
+            border: 3px solid #fff;
+            position: relative;
+        }
+        #player {
+            width: 40px;
+            height: 40px;
+            background: #42a5f5;
+            border-radius: 6px;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #msg {
+            margin-top:15px;
+            font-size:20px;
+            color:#ffd700;
+        }
+        .back{
+            margin-top:24px;
+        }
+        .back a{
+            color:#ccc;
+            font-size:18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 方块移动游戏</h1>
+    <div class="rule">
+        <b>玩法说明：</b>使用键盘方向键 ↑ ↓ ← → 控制蓝色方块移动。方块不能移出黑色游戏区域，碰到边界会文字提示。
+    </div>
+    <div id="gameBox">
+        <div id="player"></div>
+    </div>
+    <div id="msg"></div>
+    <div class="back">
+        <a href="index.html">← 返回主页</a>
+    </div>
+
+    <script>
+        const player = document.getElementById('player');
+        const msg = document.getElementById('msg');
+
+        let x = 0;
+        let y = 0;
+        const step = 10;
+        const boxSize = 400;
+        const playerSize = 40;
+
+        document.addEventListener('keydown', function(e) {
+            msg.innerText = "";
+            switch(e.key) {
+                case 'ArrowUp':
+                    if(y > 0) y -= step;
+                    else msg.innerText = "已经到顶部！";
+                    break;
+                case 'ArrowDown':
+                    if(y < boxSize - playerSize) y += step;
+                    else msg.innerText = "已经到底部！";
+                    break;
+                case 'ArrowLeft':
+                    if(x > 0) x -= step;
+                    else msg.innerText = "已经到最左边！";
+                    break;
+                case 'ArrowRight':
+                    if(x < boxSize - playerSize) x += step;
+                    else msg.innerText = "已经到最右边！";
+                    break;
+            }
+            player.style.left = x + 'px';
+            player.style.top = y + 'px';
+        })
+    </script>
+</body>
+</html>

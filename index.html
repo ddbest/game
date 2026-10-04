@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>猜数字小游戏</title>
+    <title>小游戏合集</title>
     <style>
         * {
             margin: 0;
@@ -11,114 +11,69 @@
             box-sizing: border-box;
         }
         body {
-            background-color: #16213e;
+            background-color: #2c3e50;
             color: #fff;
             font-family: "Microsoft Yahei", sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             min-height: 100vh;
-        }
-        .game-box {
-            background-color: #0f3460;
-            padding: 40px;
-            border-radius: 16px;
-            text-align: center;
-            width: 90%;
-            max-width: 420px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 80px;
         }
         h1 {
-            margin-bottom: 20px;
-            color: #e94560;
+            font-size: 36px;
+            margin-bottom: 40px;
+            color: #3498db;
         }
-        p {
-            margin:12px 0;
-            font-size:18px;
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
-        input {
-            width: 70%;
-            padding:10px;
-            font-size:18px;
-            border-radius:8px;
-            border:none;
-            outline:none;
-            text-align:center;
+        .game-link {
+            width: 280px;
+            padding: 18px 24px;
+            background-color: #34495e;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 22px;
+            transition: all 0.3s;
         }
-        button {
-            margin-top:15px;
-            padding:10px 24px;
-            font-size:18px;
-            border:none;
-            border-radius:8px;
-            background:#e94560;
-            color:#fff;
-            cursor:pointer;
+        .game-link a {
+            color: #fff;
+            text-decoration: none;
+            display:block;
         }
-        button:hover {
-            background:#c7344c;
+        .game-link:hover {
+            background-color: #3498db;
+            transform: scale(1.05);
         }
-        #tip {
-            font-size:20px;
-            margin-top:20px;
-            font-weight:bold;
+        .desc {
+            margin-top:8px;
+            font-size:14px;
+            opacity:0.8;
         }
     </style>
 </head>
 <body>
-    <div class="game-box">
-        <h1>🎮 猜数字游戏</h1>
-        <p>我想了一个 1~100 的数字，你来猜猜看！</p>
-        <input type="number" id="guessInput" placeholder="输入数字" min="1" max="100">
-        <br>
-        <button onclick="checkNumber()">提交猜测</button>
-        <button onclick="restartGame()">重新开始</button>
-        <div id="tip"></div>
-        <p>猜测次数：<span id="count">0</span></p>
+    <h1>🎮 小游戏合集</h1>
+    <div class="container">
+        <div class="game-link">
+            <a href="guess.html">猜数字游戏</a>
+            <div class="desc">1~100猜数字，统计猜测次数</div>
+        </div>
+        <div class="game-link">
+            <a href="move.html">方块移动游戏</a>
+            <div class="desc">方向键控制方块移动</div>
+        </div>
+        <div class="game-link">
+            <a href="match.html">简易消消乐</a>
+            <div class="desc">点击相邻同色方块消除得分</div>
+        </div>
+        <div class="game-link">
+            <a href="tetris.html">俄罗斯方块</a>
+            <div class="desc">方向键控制方块，消除整行得分</div>
+        </div>
     </div>
-
-    <script>
-        // 生成1~100随机数
-        let secretNum = Math.floor(Math.random() * 100) + 1;
-        let count = 0;
-
-        const tipDom = document.getElementById('tip');
-        const countDom = document.getElementById('count');
-        const inputDom = document.getElementById('guessInput');
-
-        function checkNumber(){
-            let value = Number(inputDom.value);
-            // 判断输入合法性
-            if(isNaN(value) || value <1 || value>100){
-                tipDom.innerText = "请输入1-100之间的数字！";
-                tipDom.style.color="#ffd369";
-                return;
-            }
-            count++;
-            countDom.innerText = count;
-
-            if(value > secretNum){
-                tipDom.innerText = "📈 太大了，再小一点！";
-                tipDom.style.color="#ff6b6b";
-            }else if(value < secretNum){
-                tipDom.innerText = "📉 太小了，再大一点！";
-                tipDom.style.color="#4ecdc4";
-            }else{
-                tipDom.innerText = `🎉恭喜你猜对啦！答案就是${secretNum}`;
-                tipDom.style.color="#7bed9f";
-            }
-            //清空输入框
-            inputDom.value = "";
-        }
-
-        // 重置游戏
-        function restartGame(){
-            secretNum = Math.floor(Math.random() * 100) + 1;
-            count = 0;
-            countDom.innerText = 0;
-            tipDom.innerText = "";
-            inputDom.value = "";
-        }
-    </script>
 </body>
 </html>

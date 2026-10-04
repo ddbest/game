@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>简易俄罗斯方块</title>
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+body{
+  background:#222;
+  color:#fff;
+  font-family:Microsoft Yahei;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:20px 10px;
+}
+.rule{
+    background:#333;
+    padding:16px;
+    border-radius:10px;
+    max-width:480px;
+    margin-bottom:20px;
+    line-height:1.6;
+}
+#game{
+  display:grid;
+  grid-template-columns:repeat(10,30px);
+  grid-template-rows:repeat(20,30px);
+  gap:1px;
+  background:#444;
+  border:2px solid #777;
+}
+.cell{
+  width:30px;
+  height:30px;
+  background:#333;
+}
+.info{
+  font-size:22px;
+  margin-bottom:10px;
+}
+#score{
+  color:#4cd964;
+  font-weight:bold;
+}
+button{
+  margin:10px 5px;
+  padding:8px 16px;
+  font-size:16px;
+  border:none;
+  border-radius:6px;
+  background:#0096ff;
+  color:#fff;
+  cursor:pointer;
+}
+button:hover{
+  background:#007bdd;
+}
+.back{
+    margin-top:24px;
+}
+.back a{
+    color:#ccc;
+    font-size:18px;
+}
+</style>
+</head>
+<body>
+<h1>🧱简易俄罗斯方块</h1>
+<div class="rule">
+    <b>玩法说明：</b>← →左右移动方块，↑旋转方块，↓加速下落。填满一整行会自动消除并加分，方块堆到游戏区域顶部，游戏结束。
+</div>
+<div class="info">得分：<span id="score">0</span></div>
+<div id="game"></div>
+<div>
+  <button onclick="startGame()">开始/重启游戏</button>
+  <button onclick="pauseGame()">暂停</button>
+</div>
+<div class="back">
+    <a href="index.html">← 返回主页</a>
+</div>
+
+<script>
+const gameDom = document.getElementById('game');
+const scoreDom = document.getElementById('score');
+const COLS = 10;
+const ROWS = 20;
+let board = [];
+let score = 0;
+let timer = null;
+let isPause = false;
+
+const shapes = [
+  [[1,1,1,1]],
+  [[1,1],[1,1]],
+  [[0,1,0],[1,1,1]],
+  [[0,0,1],[1,1,1]],
+  [[1,0,0],[1,1,1]],
+  [[0,1,1],[1,1,0]],
+  [[1,1,0],[0,1,1]]
+];
+const colors = ['#00ffff','#ffff00','#9900ff','#ff9900','#0000ff','#00ff00','#ff0000'];
+
+let currentShape;
+let currentColor;
+let x, y;
+
+function initBoard(){
+  board = [];
+  for(let r=0;r<ROWS;r++){
+    board[r] = new Array(COLS).fill(0);
+  }
+  score = 0;
+  scoreDom.innerText = score;
+  renderBoard();
+}
+
+function renderBoard(){
+  gameDom.innerHTML = '';
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const div = document.createElement('div');
+      div.className = 'cell';
+      if(board[r][c]){
+        div.style.background = board[r][c];
+      }
+      gameDom.appendChild(div);
+    }
+  }
+  if(currentShape){
+    for(let dr=0;dr<currentShape.length;dr++){
+      for(let dc=0;dc<currentShape[dr].length;dc++){
+        if(currentShape[dr][dc]){
+          const rx = x + dc;
+          const ry = y + dr;
+          if(ry >=0){
+            const index = ry * COLS + rx;
+            gameDom.children[index].style.background = currentColor;
+          }
+        }
+      }
+    }
+  }
+}
+
+function createNewShape(){
+  const idx = Math.floor(Math.random()*shapes.length);
+  currentShape = shapes[idx];
+  currentColor = colors[idx];
+  x = Math.floor((COLS - currentShape[0].length)/2);
+  y = 0;
+  if(checkCollision(currentShape, x, y)){
+    alert("游戏结束！得分："+score);
+    stopGame();
+    return false;
+  }
+  return true;
+}
+
+function checkCollision(shape, nx, ny){
+  for(let dr=0;dr<shape.length;dr++){
+    for(let dc=0;dc<shape[dr].length;dc++){
+      if(shape[dr][dc]){
+        let cx = nx + dc;
+        let cy = ny + dr;
+        if(cx<0 || cx>=COLS || cy>=ROWS) return true;
+        if(cy >=0 && board[cy][cx]) return true;
+      }
+    }
+  }
+  return false;
+}
+
+function lockShape(){
+  for(let dr=0;dr<currentShape.length;dr++){
+    for(let dc=0;dc<currentShape[dr].length;dc++){
+      if(currentShape[dr][dc]){
+        board[y+dr][x+dc] = currentColor;
+      }
+    }
+  }
+  checkLines();
+  createNewShape();
+  renderBoard();
+}
+
+function checkLines(){
+  for(let r = ROWS -1; r >=0; r--){
+    if(board[r].every(cell => cell!==0)){
+      board.splice(r,1);
+      board.unshift(new Array(COLS).fill(0));
+      score +=100;
+      scoreDom.innerText = score;
+      r++;
+    }
+  }
+}
+
+function drop(){
+  if(checkCollision(currentShape, x, y+1)){
+    lockShape();
+  }else{
+    y++;
+  }
+  renderBoard();
+}
+
+function move(dir){
+  const nx = x + dir;
+  if(!checkCollision(currentShape, nx, y)){
+    x = nx;
+  }
+  renderBoard();
+}
+
+function rotate(){
+  const old = currentShape;
+  const rotated = old[0].map((_,i)=> old.map(row=>row[i]).reverse());
+  if(!checkCollision(rotated, x, y)){
+    currentShape = rotated;
+  }
+  renderBoard();
+}
+
+document.addEventListener('keydown',(e)=>{
+  if(!timer || isPause) return;
+  switch(e.key){
+    case "ArrowLeft": move(-1);break;
+    case "ArrowRight": move(1);break;
+    case "ArrowDown": drop();break;
+    case "ArrowUp": rotate();break;
+  }
+});
+
+function startGame(){
+  stopGame();
+  isPause = false;
+  initBoard();
+  createNewShape();
+  renderBoard();
+  timer = setInterval(drop, 800);
+}
+function pauseGame(){
+  if(!timer) return;
+  isPause = !isPause;
+  if(isPause){
+    clearInterval(timer);
+  }else{
+    timer = setInterval(drop,800);
+  }
+}
+function stopGame(){
+  if(timer){
+    clearInterval(timer);
+    timer = null;
+  }
+}
+</script>
+</body>
+</html>

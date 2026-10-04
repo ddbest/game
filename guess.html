@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猜数字小游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #16213e;
+            color: #fff;
+            font-family: "Microsoft Yahei", sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding:20px;
+        }
+        .rule{
+            background:#0f2547;
+            padding:16px;
+            border-radius:10px;
+            max-width:420px;
+            margin-bottom:20px;
+            line-height:1.6;
+        }
+        .game-box {
+            background-color: #0f3460;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+        h1 {
+            margin-bottom: 10px;
+            color: #e94560;
+        }
+        p {
+            margin:12px 0;
+            font-size:18px;
+        }
+        input {
+            width: 70%;
+            padding:10px;
+            font-size:18px;
+            border-radius:8px;
+            border:none;
+            outline:none;
+            text-align:center;
+        }
+        button {
+            margin-top:15px;
+            padding:10px 24px;
+            font-size:18px;
+            border:none;
+            border-radius:8px;
+            background:#e94560;
+            color:#fff;
+            cursor:pointer;
+        }
+        button:hover {
+            background:#c7344c;
+        }
+        #tip {
+            font-size:20px;
+            margin-top:20px;
+            font-weight:bold;
+        }
+        .back{
+            margin-top:24px;
+        }
+        .back a{
+            color:#ccc;
+            font-size:18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 猜数字游戏</h1>
+    <div class="rule">
+        <b>玩法说明：</b>系统随机生成一个1~100之间的整数。输入数字提交，系统会提示数字太大/太小，直到你猜对，页面会统计你一共猜测多少次。
+    </div>
+    <div class="game-box">
+        <p>我想了一个 1~100 的数字，你来猜猜看！</p>
+        <input type="number" id="guessInput" placeholder="输入数字" min="1" max="100">
+        <br>
+        <button onclick="checkNumber()">提交猜测</button>
+        <button onclick="restartGame()">重新开始</button>
+        <div id="tip"></div>
+        <p>猜测次数：<span id="count">0</span></p>
+    </div>
+    <div class="back">
+        <a href="index.html">← 返回主页</a>
+    </div>
+
+    <script>
+        let secretNum = Math.floor(Math.random() * 100) + 1;
+        let count = 0;
+
+        const tipDom = document.getElementById('tip');
+        const countDom = document.getElementById('count');
+        const inputDom = document.getElementById('guessInput');
+
+        function checkNumber(){
+            let value = Number(inputDom.value);
+            if(isNaN(value) || value <1 || value>100){
+                tipDom.innerText = "请输入1-100之间的数字！";
+                tipDom.style.color="#ffd369";
+                return;
+            }
+            count++;
+            countDom.innerText = count;
+
+            if(value > secretNum){
+                tipDom.innerText = "📈 太大了，再小一点！";
+                tipDom.style.color="#ff6b6b";
+            }else if(value < secretNum){
+                tipDom.innerText = "📉 太小了，再大一点！";
+                tipDom.style.color="#4ecdc4";
+            }else{
+                tipDom.innerText = `🎉恭喜你猜对啦！答案就是${secretNum}`;
+                tipDom.style.color="#7bed9f";
+            }
+            inputDom.value = "";
+        }
+
+        function restartGame(){
+            secretNum = Math.floor(Math.random() * 100) + 1;
+            count = 0;
+            countDom.innerText = 0;
+            tipDom.innerText = "";
+            inputDom.value = "";
+        }
+    </script>
+</body>
+</html>
